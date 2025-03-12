@@ -1,14 +1,15 @@
 {
   "scripts": {
-  "dev": "nodemon --exec ts-node src/server.ts",
-  "start": "node dist/server.js"
-},
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "start": "node dist/server.js"
+  },
   "dependencies": {
     "axios": "^1.8.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongoose": "^8.12.1",
-    "mysql2": "^3.13.0"
+    "mysql2": "^3.13.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
