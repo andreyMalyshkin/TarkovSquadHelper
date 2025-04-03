@@ -60,7 +60,7 @@ router.post('/createCollection', async (req, res) => {
     try {
         const tableName = generateRandomName();
         await mongoose.connection.createCollection(tableName);
-        res.json({ message: `Collection '${tableName}' created successfully` });
+        res.json({ message: `${tableName}`});
         logger.info(`Collection for room created: collection.id: ${tableName}`)
     } catch (error) {
         logger.error('Error creating collection:', error);
