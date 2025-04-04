@@ -1,4 +1,6 @@
 import express from 'express';
+import { fetchData } from './fetchData';
+import { Item } from './models';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import router from './routes';
@@ -20,8 +22,24 @@ mongoose.connect(process.env.DB_URI as string)
 
 app.use('/', router);
 
+async function autoUpdateItems() {
+    try {
+        logger.info('⏰ Starting auto-update of items...');
+        const items = await fetchData();
+        await Item.deleteMany({});
+        await Item.insertMany(items);
+        logger.info('✅ Auto-update complete!');
+    } catch (error) {
+        logger.error('❌ Auto-update error:', error);
+    }
+}
+
 app.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`);
 });
+
+autoUpdateItems();
+
+setInterval(autoUpdateItems, 5 * 60 * 1000);
 
 export default app;

@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 import { Model, Document } from 'mongoose';
 import crypto from 'crypto';
 import { Item, getDynamicModel } from './models';
-import { fetchData } from './fetchData';
 import logger from './logger';
 
 const router = express.Router();
@@ -18,21 +17,6 @@ router.get('/items', async (req, res) => {
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
-router.get('/update', async (req, res) => {
-    try {
-        logger.info(`Start updating data in db`)
-        const items = await fetchData();
-        await Item.deleteMany({});
-        logger.info(`Delete old data`)
-        await Item.insertMany(items);
-        res.json({ message: 'Data updated' });
-        logger.info (`Date downloaded and writen to DB`)
-    } catch (error) {
-        logger.error('Update error:', error);
-        res.status(500).json({ error: 'Failed to update data' });
     }
 });
 
@@ -83,13 +67,26 @@ router.post('/addItemsToCollection', async (req, res) => {
         }
         
         const DynamicModel = getDynamicModel(tableName);
-        const newItem = new DynamicModel(item);
-        logger.info(`${newItem}`)
-        await newItem.save();
 
-        res.json({ message: `Item added to '${tableName}'`, item: newItem });
+        // @ts-ignore
+        const existingItem = await DynamicModel.findOne({ key: item.key, nickName: item.nickName });
 
-        logger.info(`Items was added to collection: ${tableName} with item ${req.body.item.id}`)
+
+        if (existingItem) {
+            existingItem.count += 1;
+            await existingItem.save();
+
+            res.json({ message: `Item found and updated in '${tableName}'`, item: existingItem });
+
+            logger.info(`Item updated in collection: ${tableName} with item ${item.key}, new count: ${existingItem.count}`);
+        } else {
+            const newItem = new DynamicModel(item);
+            await newItem.save();
+
+            res.json({ message: `Item added to '${tableName}'`, item: newItem });
+
+            logger.info(`Item added to collection: ${tableName} with item ${item.key}`);
+        }
     } catch (error) {
         logger.error('Error adding item:', error);
         res.status(500).json({ error: 'Failed to add item' });
