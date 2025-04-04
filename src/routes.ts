@@ -49,7 +49,7 @@ router.get('/search', async (req, res) => {
         });
 
         res.json(results);
-        logger.info(`Search compleated: ${results}`)
+        // logger.info(`Search compleated: ${results}`)
     } catch (error) {
         logger.error('Search error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -78,12 +78,13 @@ router.post('/addItemsToCollection', async (req, res) => {
         }
 
         if (!item || !item.id || !item.name || !item.price) {
-            res.status(400).json({ error: 'Invalid item data' });
+            res.status(400).json({ error: `Invalid item data ${req.body}` });
             return 
         }
         
         const DynamicModel = getDynamicModel(tableName);
         const newItem = new DynamicModel(item);
+        logger.info(`${newItem}`)
         await newItem.save();
 
         res.json({ message: `Item added to '${tableName}'`, item: newItem });
