@@ -72,9 +72,6 @@ router.post('/addItemsToCollection', async (req, res) => {
     try {
         const { tableName, item } = req.body;
 
-        logger.info(JSON.stringify(req.body.item, null, 2));
-        logger.info(`Показать тело запроса`)
-
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
             return 
@@ -88,7 +85,6 @@ router.post('/addItemsToCollection', async (req, res) => {
         const DynamicModel = getDynamicModel(tableName);
         const newItem = new DynamicModel(item);
         logger.info(`${newItem}`)
-        newItem.set('key', item.key);
         await newItem.save();
 
         res.json({ message: `Item added to '${tableName}'`, item: newItem });
