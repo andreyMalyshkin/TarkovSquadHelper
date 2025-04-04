@@ -24,7 +24,7 @@ export async function fetchData(): Promise<Item[]> {
         });
 
         return response.data.data.items.map((item: any) => ({
-            id: item.id,
+            key: item.id,
             name: item.name,
             price: item.avg24hPrice || 0,
             link: item.link,

@@ -80,7 +80,7 @@ router.post('/addItemsToCollection', async (req, res) => {
             return 
         }
 
-        if (!item || !item.id || !item.name) {
+        if (!item || !item.key || !item.name) {
             res.status(400).json({ error: `Invalid item data` });
             return 
         }
@@ -88,7 +88,7 @@ router.post('/addItemsToCollection', async (req, res) => {
         const DynamicModel = getDynamicModel(tableName);
         const newItem = new DynamicModel(item);
         logger.info(`${newItem}`)
-        newItem.set('id', item.id);
+        newItem.set('key', item.key);
         await newItem.save();
 
         res.json({ message: `Item added to '${tableName}'`, item: newItem });
@@ -109,7 +109,7 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
             return 
         }
 
-        if (!item || !item.id || !item.nickName) {
+        if (!item || !item.key || !item.nickName) {
             res.status(400).json({ error: 'Invalid item data (id & nickName required)' });
             return 
         }
@@ -124,16 +124,16 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
         }
 
         const DynamicModel = getDynamicModel(tableName);
-        const result = await DynamicModel.deleteOne({ id: item.id, nickName: item.nickName });
+        const result = await DynamicModel.deleteOne({ key: item.key, nickName: item.nickName });
 
         if (result.deletedCount === 0) {
-            res.status(404).json({ error: `Item with id '${item.id}' not found in '${tableName}'` });
-            logger.warn(`Item not found: ${item.id} in ${tableName}`);
+            res.status(404).json({ error: `Item with id '${item.key}' not found in '${tableName}'` });
+            logger.warn(`Item not found: ${item.key} in ${tableName}`);
             return;
         }
 
-        res.json({ message: `Item '${item.id}' for user '${item.nickName}' deleted from '${tableName}'` });
-        logger.info(`Deleted item ${item.id} for user ${item.nickName} from collection ${tableName}`);
+        res.json({ message: `Item '${item.keyk}' for user '${item.nickName}' deleted from '${tableName}'` });
+        logger.info(`Deleted item ${item.key} for user ${item.nickName} from collection ${tableName}`);
 
     } catch (error) {
         logger.error('Error deleting item:', error);
@@ -179,8 +179,8 @@ router.post('/increaseItemCount', async (req, res) => {
             return 
         }
 
-        if (!item || !item.id || !item.nickName) {
-            res.status(400).json({ error: 'Invalid item data (id & nickName required)' });
+        if (!item || !item.key || !item.nickName) {
+            res.status(400).json({ error: 'Invalid item data (key & nickName required)' });
             return 
         }
 
@@ -199,18 +199,18 @@ router.post('/increaseItemCount', async (req, res) => {
         const DynamicModel = getDynamicModel(tableName);
 
         const result:any = await (DynamicModel as Model<Document>).findOneAndUpdate(
-            { id: item.id, nickName: item.nickName },
+            { key: item.key, nickName: item.nickName },
             { $inc: { count: incAmount } },
             { new: true }
           );
 
         if (!result) {
-            res.status(404).json({ error: `Item '${item.id}' for user '${item.nickName}' not found` });
+            res.status(404).json({ error: `Item '${item.key}' for user '${item.nickName}' not found` });
             return 
         }
 
-        res.json({ message: `Increased count of item '${item.id}' for '${item.nickName}'`, newCount: result.count });
-        logger.info(`Increased count for item ${item.id} (nickName: ${item.nickName}) in ${tableName}`);
+        res.json({ message: `Increased count of item '${item.key}' for '${item.nickName}'`, newCount: result.count });
+        logger.info(`Increased count for item ${item.key} (nickName: ${item.nickName}) in ${tableName}`);
     } catch (error) {
         logger.error(`Error increasing item count: ${error}`);
         res.status(500).json({ error: 'Failed to increase count' });
@@ -226,7 +226,7 @@ router.post('/decreaseItemCount', async (req, res) => {
             return 
         }
 
-        if (!item || !item.id || !item.nickName) {
+        if (!item || !item.key || !item.nickName) {
             res.status(400).json({ error: 'Invalid item data (id & nickName required)' });
             return 
         }
@@ -244,10 +244,10 @@ router.post('/decreaseItemCount', async (req, res) => {
 
         const DynamicModel = getDynamicModel(tableName);
 
-        const existingItem:any = await (DynamicModel as Model<Document>).findOne({ id: item.id, nickName: item.nickName });
+        const existingItem:any = await (DynamicModel as Model<Document>).findOne({ key: item.key, nickName: item.nickName });
 
         if (!existingItem) {
-            res.status(404).json({ error: `Item '${item.id}' for user '${item.nickName}' not found` });
+            res.status(404).json({ error: `Item '${item.key}' for user '${item.nickName}' not found` });
             return
         }
 
@@ -259,7 +259,7 @@ router.post('/decreaseItemCount', async (req, res) => {
         existingItem.count -= decAmount;
         await existingItem.save();
 
-        res.json({ message: `Decreased count of item '${item.id}' for '${item.nickName}'`, newCount: existingItem.count });
+        res.json({ message: `Decreased count of item '${item.key}' for '${item.nickName}'`, newCount: existingItem.count });
         logger.info(`Decreased count for item ${item.id} (nickName: ${item.nickName}) in ${tableName}`);
     } catch (error) {
         logger.error(`Error decreasing item count: ${error}`);

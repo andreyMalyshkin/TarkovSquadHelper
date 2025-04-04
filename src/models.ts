@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
-    id: { type: String, required: true },
+    key: { type: String, required: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     link: { type: String, required: false },
@@ -15,7 +15,7 @@ export const getDynamicModel = (tableName: string) => {
     }
 
     return mongoose.model(tableName, new mongoose.Schema({
-        id: { type: String, required: true },
+        key: { type: String, required: true },
         name: { type: String, required: true },
         price: { type: Number, required: true },
         link: { type: String, required: false },
