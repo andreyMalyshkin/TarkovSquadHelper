@@ -88,6 +88,7 @@ router.post('/addItemsToCollection', async (req, res) => {
         const DynamicModel = getDynamicModel(tableName);
         const newItem = new DynamicModel(item);
         logger.info(`${newItem}`)
+        newItem.set('id', item.id);
         await newItem.save();
 
         res.json({ message: `Item added to '${tableName}'`, item: newItem });
