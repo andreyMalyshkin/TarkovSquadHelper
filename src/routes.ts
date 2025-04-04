@@ -72,7 +72,8 @@ router.post('/addItemsToCollection', async (req, res) => {
     try {
         const { tableName, item } = req.body;
 
-        logger.info(req.body.item)
+        logger.info(JSON.stringify(req.body.item, null, 2));
+        logger.info(`Показать тело запроса`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
