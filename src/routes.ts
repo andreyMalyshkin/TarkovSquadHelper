@@ -77,8 +77,8 @@ router.post('/addItemsToCollection', async (req, res) => {
             return 
         }
 
-        if (!item || !item.id || !item.name || !item.price) {
-            res.status(400).json({ error: `Invalid item data ${req.body}` });
+        if (!item || !item.id || !item.name) {
+            res.status(400).json({ error: `Invalid item data` });
             return 
         }
         
