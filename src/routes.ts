@@ -146,7 +146,7 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
 router.get('/getitemsFromCollection', async (req, res) => {
     try {
         const tableName = req.query.tableName?.toString();
-        logger.info(`Request: getitemsFromCollection`);
+        logger.info(`Request: getitemsFromCollection for ${tableName}`);
 
         if (!tableName) {
             res.status(400).json({ error: 'Query parameter "tableName" is required' });
@@ -154,32 +154,23 @@ router.get('/getitemsFromCollection', async (req, res) => {
         }
 
         const db = mongoose.connection.useDb(mongoose.connection.name);
-        if (!db.db) {
-            return res.status(500).json({ error: 'Database connection not ready' });
-        }
+        const nativeDb = db.db;
 
-        const collections = await db.db.listCollections().toArray();
-        const collectionNames = collections.map((col) => col.name);
+        // @ts-ignore
+        const collections = await nativeDb.listCollections().toArray();
+        const collectionExists = collections.some(col => col.name === tableName);
 
-        if (!collectionNames.includes(tableName)) {
-            res.status(404).json({ error: `Collection '${tableName}' not found` });
-            return;
-        }
-
-        let DynamicModel;
-
-        if (mongoose.models[tableName]) {
-            logger.trace(`Using existing mongoose model for ${tableName}`);
-            DynamicModel = mongoose.models[tableName];
-        } else {
-            logger.trace(`Creating a mongoose model for ${tableName} with predefined schema`);
-            DynamicModel = mongoose.model(tableName, Item.schema);
+        if (!collectionExists) {
+            return res.status(404).json({ error: `Collection "${tableName}" not found` });
         }
 
         // @ts-ignore
-        const items = await DynamicModel.find();
-        res.json(items);
+        const items = await nativeDb.collection(tableName).find().toArray();
+
+        logger.info(items)
+
         logger.info(`Successfully fetched items from collection: ${tableName}`);
+        return res.json({ items });
     } catch (error) {
         logger.error('Error fetching items:', error);
         res.status(500).json({ error: 'Failed to fetch items' });
