@@ -24,6 +24,7 @@ router.get('/items', async (req, res) => {
 router.get('/search', async (req, res) => {
     try {
         const query = req.query.q?.toString();
+        logger.info (`Request: search ${query}`)
         if (!query) {
             res.status(400).json({ error: 'Query parameter "q" is required' });
             return 
@@ -43,6 +44,7 @@ router.get('/search', async (req, res) => {
 
 router.post('/createCollection', async (req, res) => {
     try {
+        logger.info (`Request: createCollection `)
         const tableName = generateRandomName();
         await mongoose.connection.createCollection(tableName);
         res.json({ message: `${tableName}`});
@@ -55,6 +57,8 @@ router.post('/createCollection', async (req, res) => {
 
 router.post('/addItemsToCollection', async (req, res) => {
     try {
+        logger.info (`Request: addItemsToCollection `)
+
         const { tableName, item } = req.body;
 
         if (!tableName || typeof tableName !== 'string') {
@@ -97,6 +101,8 @@ router.post('/addItemsToCollection', async (req, res) => {
 
 router.delete('/deleteItemFromCollection', async (req, res) => {
     try {
+        logger.info (`Request: deleteItemFromCollection `)
+
         const { tableName, item } = req.body;
 
         if (!tableName || typeof tableName !== 'string') {
@@ -138,20 +144,26 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
 
 router.get('/getitemsFromCollection', async (req, res) => {
     try {
+
         const tableName = req.query.tableName?.toString();
+        logger.info (`Request: getitemsFromCollection `)
 
         if (!tableName) {
             res.status(400).json({ error: 'Query parameter "tableName" is required' });
             return 
         }
-
+        
         const db = mongoose.connection.useDb(mongoose.connection.name);
-        const collections = await db.listCollections();
-        const collectionNames = collections.map((col) => col.name);
+        const collections = await (db.listCollections() as any).toArray();
+        const collectionNames = collections.map((col: { name: any; }) => col.name);
 
         if (!collectionNames.includes(tableName)) {
             res.status(404).json({ error: `Collection '${tableName}' not found` });
             return 
+        }
+
+        if (mongoose.models[tableName]) {
+            delete mongoose.models[tableName];
         }
 
         const DynamicModel = mongoose.models[tableName] || mongoose.model(tableName, new mongoose.Schema({}, { strict: false }));
@@ -167,7 +179,9 @@ router.get('/getitemsFromCollection', async (req, res) => {
 
 router.post('/increaseItemCount', async (req, res) => {
     try {
+
         const { tableName, item, amount } = req.body;
+        logger.info (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
@@ -214,7 +228,9 @@ router.post('/increaseItemCount', async (req, res) => {
 
 router.post('/decreaseItemCount', async (req, res) => {
     try {
+
         const { tableName, item, amount } = req.body;
+        logger.info (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
@@ -261,6 +277,5 @@ router.post('/decreaseItemCount', async (req, res) => {
         res.status(500).json({ error: 'Failed to decrease count' });
     }
 });
-
 
 export default router;
