@@ -4,6 +4,7 @@ import { Model, Document } from 'mongoose';
 import crypto from 'crypto';
 import { Item, getDynamicModel } from './models';
 import logger from './logger';
+import * as util from "node:util";
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ router.get('/items', async (req, res) => {
 router.get('/search', async (req, res) => {
     try {
         const query = req.query.q?.toString();
+        logger.info (`Request: search ${query}`)
         if (!query) {
             res.status(400).json({ error: 'Query parameter "q" is required' });
             return 
@@ -42,6 +44,7 @@ router.get('/search', async (req, res) => {
 
 router.post('/createCollection', async (req, res) => {
     try {
+        logger.info (`Request: createCollection `)
         const tableName = generateRandomName();
         await mongoose.connection.createCollection(tableName);
         res.json({ message: `${tableName}`});
@@ -54,6 +57,8 @@ router.post('/createCollection', async (req, res) => {
 
 router.post('/addItemsToCollection', async (req, res) => {
     try {
+        logger.info (`Request: addItemsToCollection `)
+
         const { tableName, item } = req.body;
 
         if (!tableName || typeof tableName !== 'string') {
@@ -67,6 +72,7 @@ router.post('/addItemsToCollection', async (req, res) => {
         }
         
         const DynamicModel = getDynamicModel(tableName);
+        logger.trace(util.inspect(DynamicModel.schema,false,4,true))
 
         // @ts-ignore
         const existingItem = await DynamicModel.findOne({ key: item.key, nickName: item.nickName });
@@ -95,6 +101,8 @@ router.post('/addItemsToCollection', async (req, res) => {
 
 router.delete('/deleteItemFromCollection', async (req, res) => {
     try {
+        logger.info (`Request: deleteItemFromCollection `)
+
         const { tableName, item } = req.body;
 
         if (!tableName || typeof tableName !== 'string') {
@@ -134,29 +142,35 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
     }
 });
 
+// @ts-ignore
 router.get('/getitemsFromCollection', async (req, res) => {
     try {
         const tableName = req.query.tableName?.toString();
+        logger.info(`Request: getitemsFromCollection for ${tableName}`);
 
         if (!tableName) {
             res.status(400).json({ error: 'Query parameter "tableName" is required' });
-            return 
+            return;
         }
 
         const db = mongoose.connection.useDb(mongoose.connection.name);
-        const collections = await db.listCollections();
-        const collectionNames = collections.map((col) => col.name);
+        const nativeDb = db.db;
 
-        if (!collectionNames.includes(tableName)) {
-            res.status(404).json({ error: `Collection '${tableName}' not found` });
-            return 
+        // @ts-ignore
+        const collections = await nativeDb.listCollections().toArray();
+        const collectionExists = collections.some(col => col.name === tableName);
+
+        if (!collectionExists) {
+            return res.status(404).json({ error: `Collection "${tableName}" not found` });
         }
 
-        const DynamicModel = mongoose.models[tableName] || mongoose.model(tableName, new mongoose.Schema({}, { strict: false }));
-        const items = await DynamicModel.find();
+        // @ts-ignore
+        const items = await nativeDb.collection(tableName).find().toArray();
 
-        res.json(items);
-        logger.info(`Success find items from collection: ${tableName}`)
+        logger.info(items)
+
+        logger.info(`Successfully fetched items from collection: ${tableName}`);
+        return res.json({ items });
     } catch (error) {
         logger.error('Error fetching items:', error);
         res.status(500).json({ error: 'Failed to fetch items' });
@@ -165,7 +179,9 @@ router.get('/getitemsFromCollection', async (req, res) => {
 
 router.post('/increaseItemCount', async (req, res) => {
     try {
+
         const { tableName, item, amount } = req.body;
+        logger.trace(`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
@@ -212,7 +228,9 @@ router.post('/increaseItemCount', async (req, res) => {
 
 router.post('/decreaseItemCount', async (req, res) => {
     try {
+
         const { tableName, item, amount } = req.body;
+        logger.trace (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
@@ -259,6 +277,5 @@ router.post('/decreaseItemCount', async (req, res) => {
         res.status(500).json({ error: 'Failed to decrease count' });
     }
 });
-
 
 export default router;

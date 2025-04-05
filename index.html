@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание комнаты и добавление предметов</title>
+</head>
+<body>
+<h1>Создание комнаты</h1>
+<button onclick="createRoom()">Создать комнату</button>
+<p id="roomId"></p>
+
+<h2>Добавить предмет</h2>
+<form id="itemForm">
+    <input type="text" placeholder="Название" id="name" required>
+    <input type="number" placeholder="Цена" id="price" required>
+    <input type="text" placeholder="Ссылка" id="link">
+    <input type="number" placeholder="Количество" id="count" required>
+    <input type="text" placeholder="Никнейм" id="nickName" required>
+    <input type="text" placeholder="ID предмета" id="key" required>
+    <button type="submit">Добавить предмет</button>
+</form>
+
+<script>
+    let tableName = '';
+
+    async function createRoom() {
+        try {
+            const response = await fetch('https://westheimerone.com/createCollection', {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+            tableName = data.message;
+            document.getElementById('roomId').innerText = 'Комната создана: ' + tableName;
+        } catch (err) {
+            alert('Ошибка при создании комнаты: ' + err.message);
+        }
+    }
+
+    document.getElementById('itemForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!tableName) {
+            alert('Сначала создайте комнату');
+            return;
+        }
+
+        const item = {
+            key: document.getElementById('key').value,
+            name: document.getElementById('name').value,
+            price: Number(document.getElementById('price').value),
+            link: document.getElementById('link').value,
+            count: Number(document.getElementById('count').value),
+            nickName: document.getElementById('nickName').value
+        };
+
+        try {
+            const response = await fetch('https://westheimerone.com/addItemsToCollection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tableName, item })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert('Предмет добавлен: ' + JSON.stringify(data.item));
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        } catch (err) {
+            alert('Ошибка при добавлении предмета: ' + err.message);
+        }
+    });
+</script>
+</body>
+</html>
