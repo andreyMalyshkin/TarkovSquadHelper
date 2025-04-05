@@ -73,7 +73,7 @@ router.post('/addItemsToCollection', async (req, res) => {
 
 
         if (existingItem) {
-            existingItem.count += 1;
+            existingItem.count = 10;
             await existingItem.save();
 
             res.json({ message: `Item found and updated in '${tableName}'`, item: existingItem });
