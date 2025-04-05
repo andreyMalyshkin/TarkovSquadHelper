@@ -72,14 +72,14 @@ router.post('/addItemsToCollection', async (req, res) => {
         }
         
         const DynamicModel = getDynamicModel(tableName);
-        logger.info(util.inspect(DynamicModel.schema,false,4,true))
+        logger.trace(util.inspect(DynamicModel.schema,false,4,true))
 
         // @ts-ignore
         const existingItem = await DynamicModel.findOne({ key: item.key, nickName: item.nickName });
 
 
         if (existingItem) {
-            existingItem.count = 10;
+            existingItem.count += 1;
             await existingItem.save();
 
             res.json({ message: `Item found and updated in '${tableName}'`, item: existingItem });
@@ -142,6 +142,7 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
     }
 });
 
+// @ts-ignore
 router.get('/getitemsFromCollection', async (req, res) => {
     try {
 
@@ -185,7 +186,7 @@ router.post('/increaseItemCount', async (req, res) => {
     try {
 
         const { tableName, item, amount } = req.body;
-        logger.info (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
+        logger.trace(`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
@@ -234,7 +235,7 @@ router.post('/decreaseItemCount', async (req, res) => {
     try {
 
         const { tableName, item, amount } = req.body;
-        logger.info (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
+        logger.trace (`Request: decreaseItemCount ${tableName} ${item} ${amount}`)
 
         if (!tableName || typeof tableName !== 'string') {
             res.status(400).json({ error: 'Invalid or missing tableName' });
