@@ -145,13 +145,12 @@ router.delete('/deleteItemFromCollection', async (req, res) => {
 // @ts-ignore
 router.get('/getitemsFromCollection', async (req, res) => {
     try {
-
         const tableName = req.query.tableName?.toString();
-        logger.info (`Request: getitemsFromCollection `)
+        logger.info(`Request: getitemsFromCollection`);
 
         if (!tableName) {
             res.status(400).json({ error: 'Query parameter "tableName" is required' });
-            return 
+            return;
         }
 
         const db = mongoose.connection.useDb(mongoose.connection.name);
@@ -164,18 +163,23 @@ router.get('/getitemsFromCollection', async (req, res) => {
 
         if (!collectionNames.includes(tableName)) {
             res.status(404).json({ error: `Collection '${tableName}' not found` });
-            return 
+            return;
         }
+
+        let DynamicModel;
 
         if (mongoose.models[tableName]) {
-            delete mongoose.models[tableName];
+            logger.trace(`Using existing mongoose model for ${tableName}`);
+            DynamicModel = mongoose.models[tableName];
+        } else {
+            logger.trace(`Creating a mongoose model for ${tableName} with predefined schema`);
+            DynamicModel = mongoose.model(tableName, Item.schema);
         }
 
-        const DynamicModel = mongoose.models[tableName] || mongoose.model(tableName, new mongoose.Schema({}, { strict: false }));
+        // @ts-ignore
         const items = await DynamicModel.find();
-
         res.json(items);
-        logger.info(`Success find items from collection: ${tableName}`)
+        logger.info(`Successfully fetched items from collection: ${tableName}`);
     } catch (error) {
         logger.error('Error fetching items:', error);
         res.status(500).json({ error: 'Failed to fetch items' });
