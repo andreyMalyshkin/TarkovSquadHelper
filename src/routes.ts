@@ -152,10 +152,14 @@ router.get('/getitemsFromCollection', async (req, res) => {
             res.status(400).json({ error: 'Query parameter "tableName" is required' });
             return 
         }
-        
+
         const db = mongoose.connection.useDb(mongoose.connection.name);
-        const collections = await (db.listCollections() as any).toArray();
-        const collectionNames = collections.map((col: { name: any; }) => col.name);
+        if (!db.db) {
+            return res.status(500).json({ error: 'Database connection not ready' });
+        }
+
+        const collections = await db.db.listCollections().toArray();
+        const collectionNames = collections.map((col) => col.name);
 
         if (!collectionNames.includes(tableName)) {
             res.status(404).json({ error: `Collection '${tableName}' not found` });
