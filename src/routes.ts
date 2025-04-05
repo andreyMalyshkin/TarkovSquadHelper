@@ -4,6 +4,7 @@ import { Model, Document } from 'mongoose';
 import crypto from 'crypto';
 import { Item, getDynamicModel } from './models';
 import logger from './logger';
+import * as util from "node:util";
 
 const router = express.Router();
 
@@ -67,6 +68,7 @@ router.post('/addItemsToCollection', async (req, res) => {
         }
         
         const DynamicModel = getDynamicModel(tableName);
+        logger.info(util.inspect(DynamicModel.schema,false,4,true))
 
         // @ts-ignore
         const existingItem = await DynamicModel.findOne({ key: item.key, nickName: item.nickName });
