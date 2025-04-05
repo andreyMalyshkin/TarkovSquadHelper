@@ -31,7 +31,7 @@
 | Method | Endpoint                    | Description                                                                                     |
 |-------:|:----------------------------|:-----------------------------------------------------------------------------------------------|
 | GET    | `/items`                    | Get all items from the database.                                                                |
-| GET    | `/update`                   | Fetch and update the latest item data from external API.                                        |
+| GET    | `/update`                   | Fetch and update the latest item data from external API. deprecated method                      |
 | GET    | `/search?q=itemName`        | Search items by name.                                                                          |
 | POST   | `/createCollection`         | Create a new room (collection) with a random name.                                              |
 | POST   | `/addItemsToCollection`     | Add an item to a specific room for a user. Requires `tableName` and `item` object.              |
