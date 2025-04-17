@@ -11,7 +11,7 @@ export async function fetchData(): Promise<Item[]> {
         const response = await axios.post('https://api.tarkov.dev/graphql', {
             query: `
                 {
-                    items {
+                    items(lang: ru) {
                         id
                         name
                         avg24hPrice
